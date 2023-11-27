@@ -27,9 +27,16 @@ async function run() {
         await client.connect();
 
         const courseCollection = client.db("studySyncDb").collection("course");
+        const reviewCollection = client.db("studySyncDb").collection("review");
 
         app.get('/courses', async (req, res) => {
             const result = await courseCollection.find().toArray();
+            res.send(result);
+        })
+
+        // reviews
+        app.get('/reviews', async (req, res) => {
+            const result = await reviewCollection.find().toArray();
             res.send(result);
         })
 

@@ -28,7 +28,23 @@ async function run() {
 
         const courseCollection = client.db("studySyncDb").collection("course");
         const reviewCollection = client.db("studySyncDb").collection("review");
+        const userCollection = client.db("studySyncDb").collection("users");
 
+
+        // creat user
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const query = { email: user.email }
+            const existingUser = await userCollection.findOne(query);
+            if (existingUser) {
+                return res.send({ message: 'user already exists', insertedId: null })
+            }
+            const result = await userCollection.insertOne(user);
+            res.send(result);
+        })
+
+
+        // courses
         app.get('/courses', async (req, res) => {
             const result = await courseCollection.find().toArray();
             res.send(result);

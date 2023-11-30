@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const port = process.env.PORT || 5000;
 
@@ -31,6 +32,31 @@ async function run() {
         const userCollection = client.db("studySyncDb").collection("users");
         const workCollection = client.db("studySyncDb").collection("works");
 
+        // jwt token api
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            res.send({ token });
+        })
+
+        // custom middlewares
+        const verifyToken = (req, res, next) => {
+            console.log('inside verify tokens', req.headers.authorization);
+            if (!req.headers.authorization) {
+                return res.status(401).send({ message: 'unauthorized' })
+            }
+            const token = req.headers.authorization.split(' ')[1];
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                // error
+                if (err) {
+                    return res.status(401).send({ message: 'unauthorized' })
+                }
+                // valid
+                req.decoded = decoded;
+                next();
+            })
+        }
+
 
         // creat user
         app.post('/users', async (req, res) => {
@@ -45,7 +71,8 @@ async function run() {
         })
 
         // get users
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyToken, async (req, res) => {
+            // console.log(req.headers);
             const result = await userCollection.find().toArray();
             res.send(result);
         })

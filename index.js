@@ -39,7 +39,7 @@ async function run() {
             res.send({ token });
         })
 
-        // custom middlewares
+        // custom middlewares 01
         const verifyToken = (req, res, next) => {
             console.log('inside verify tokens', req.headers.authorization);
             if (!req.headers.authorization) {
@@ -55,6 +55,18 @@ async function run() {
                 req.decoded = decoded;
                 next();
             })
+        }
+
+        // custom middlewares 02
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const isAdmin = user?.role === 'admin';
+            if (!isAdmin) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            next();
         }
 
 
@@ -94,7 +106,7 @@ async function run() {
         })
 
         // verify user
-        app.patch('/users/hr/:id', async (req, res) => {
+        app.patch('/users/hr/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const updatedDoc = {
@@ -107,7 +119,7 @@ async function run() {
         })
 
         // make Hr
-        app.patch('/users/newhr/:id', async (req, res) => {
+        app.patch('/users/newhr/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const updatedDoc = {
@@ -120,7 +132,7 @@ async function run() {
         })
 
         // get specific user detiles
-        app.get('/users/:id', async (req, res) => {
+        app.get('/users/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await userCollection.findOne(query);
@@ -128,7 +140,7 @@ async function run() {
         })
 
         // Fire a User
-        app.delete('/users/:id', async (req, res) => {
+        app.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await userCollection.deleteOne(query);
@@ -136,20 +148,20 @@ async function run() {
         })
 
         // worksheet
-        app.post('/worksheet', async (req, res) => {
+        app.post('/worksheet', verifyToken, async (req, res) => {
             const works = req.body;
             const result = await workCollection.insertOne(works);
             res.send(result);
         })
 
         // load all worksheet data
-        app.get('/progress', async (req, res) => {
+        app.get('/progress', verifyToken, async (req, res) => {
             const result = await workCollection.find().toArray();
             res.send(result);
         })
 
         // load worksheet based on email
-        app.get('/worksheet', async (req, res) => {
+        app.get('/worksheet', verifyToken, async (req, res) => {
             console.log(req.query.email);
             let query = {};
             if (req.query?.email) {

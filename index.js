@@ -63,6 +63,19 @@ async function run() {
             res.send(result);
         })
 
+        // make Hr
+        app.patch('/users/newhr/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    role: 'HR'
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedDoc)
+            res.send(result);
+        })
+
         // get specific user detiles
         app.get('/users/:id', async (req, res) => {
             const id = req.params.id;

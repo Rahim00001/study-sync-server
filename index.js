@@ -24,8 +24,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+
 
         const courseCollection = client.db("studySyncDb").collection("course");
         const reviewCollection = client.db("studySyncDb").collection("review");
@@ -174,7 +173,7 @@ async function run() {
         })
 
         // get specific user detiles
-        app.get('/users/:id', async (req, res) => {
+        app.get('/users/:id', verifyToken, verifyHr, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await userCollection.findOne(query);
@@ -190,20 +189,20 @@ async function run() {
         })
 
         // worksheet
-        app.post('/worksheet', async (req, res) => {
+        app.post('/worksheet', verifyToken, async (req, res) => {
             const works = req.body;
             const result = await workCollection.insertOne(works);
             res.send(result);
         })
 
         // load all worksheet data
-        app.get('/progress', verifyToken, async (req, res) => {
+        app.get('/progress', verifyToken, verifyHr, async (req, res) => {
             const result = await workCollection.find().toArray();
             res.send(result);
         })
 
         // load worksheet based on email
-        app.get('/worksheet', async (req, res) => {
+        app.get('/worksheet', verifyToken, async (req, res) => {
             console.log(req.query.email);
             let query = {};
             if (req.query?.email) {
@@ -228,11 +227,8 @@ async function run() {
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
-        // await client.close();
     }
 }
 run().catch(console.dir);

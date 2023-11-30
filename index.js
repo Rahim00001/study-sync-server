@@ -78,6 +78,17 @@ async function run() {
             res.send(result);
         })
 
+        // load worksheet based on email
+        app.get('/worksheet', async (req, res) => {
+            console.log(req.query.email);
+            let query = {};
+            if (req.query?.email) {
+                query = { email: req.query.email }
+            }
+            const result = await workCollection.find(query).toArray();
+            res.send(result);
+        })
+
 
         // courses
         app.get('/courses', async (req, res) => {

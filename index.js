@@ -104,6 +104,37 @@ async function run() {
             }
             res.send({ admin });
         })
+        // get HR
+        app.get('/users/hr/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            let hr = false;
+            if (user) {
+                hr = user?.role === 'HR';
+            }
+            res.send({ hr });
+        })
+
+        // get Employee
+        app.get('/users/employee/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            let employee = false;
+            if (user) {
+                employee = user?.role === 'Employee';
+            }
+            res.send({ employee });
+        })
 
         // verify user
         app.patch('/users/hr/:id', verifyToken, async (req, res) => {

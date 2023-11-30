@@ -62,8 +62,19 @@ async function run() {
             const email = req.decoded.email;
             const query = { email: email };
             const user = await userCollection.findOne(query);
-            const isAdmin = user?.role === 'admin';
+            const isAdmin = user?.role === 'Admin';
             if (!isAdmin) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            next();
+        }
+        // custom middlewares 03
+        const verifyHr = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const isHr = user?.role === 'HR';
+            if (!isHr) {
                 return res.status(403).send({ message: 'forbidden access' });
             }
             next();
@@ -137,7 +148,7 @@ async function run() {
         })
 
         // verify user
-        app.patch('/users/hr/:id', verifyToken, async (req, res) => {
+        app.patch('/users/hr/:id', verifyToken, verifyHr, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const updatedDoc = {
@@ -163,7 +174,7 @@ async function run() {
         })
 
         // get specific user detiles
-        app.get('/users/:id', verifyToken, async (req, res) => {
+        app.get('/users/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await userCollection.findOne(query);
@@ -179,7 +190,7 @@ async function run() {
         })
 
         // worksheet
-        app.post('/worksheet', verifyToken, async (req, res) => {
+        app.post('/worksheet', async (req, res) => {
             const works = req.body;
             const result = await workCollection.insertOne(works);
             res.send(result);
@@ -192,7 +203,7 @@ async function run() {
         })
 
         // load worksheet based on email
-        app.get('/worksheet', verifyToken, async (req, res) => {
+        app.get('/worksheet', async (req, res) => {
             console.log(req.query.email);
             let query = {};
             if (req.query?.email) {

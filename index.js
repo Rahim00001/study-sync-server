@@ -29,6 +29,7 @@ async function run() {
         const courseCollection = client.db("studySyncDb").collection("course");
         const reviewCollection = client.db("studySyncDb").collection("review");
         const userCollection = client.db("studySyncDb").collection("users");
+        const workCollection = client.db("studySyncDb").collection("works");
 
 
         // creat user
@@ -67,6 +68,13 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await userCollection.findOne(query);
+            res.send(result);
+        })
+
+        // worksheet
+        app.post('/worksheet', async (req, res) => {
+            const works = req.body;
+            const result = await workCollection.insertOne(works);
             res.send(result);
         })
 

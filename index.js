@@ -78,6 +78,12 @@ async function run() {
             res.send(result);
         })
 
+        // load all worksheet data
+        app.get('/progress', async (req, res) => {
+            const result = await workCollection.find().toArray();
+            res.send(result);
+        })
+
         // load worksheet based on email
         app.get('/worksheet', async (req, res) => {
             console.log(req.query.email);
